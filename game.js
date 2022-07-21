@@ -117,7 +117,7 @@ context.fillStyle = "rgba(193,193,193,1.00)";
 context.font = "normal small-caps 100 " + (textSize + 30) + "px VT323";
 context.textAlign = "center";
 context.textBaseline = "middle";
-context.fillText("ASTEROIDS", canvas.width / 2, canvas.height * 0.48);
+context.fillText("APEROIDS", canvas.width / 2, canvas.height * 0.48);
 // subtitke
 context.font = "small-caps " + (textSize - 15) + "px VT323";
 context.fillText(
@@ -128,7 +128,7 @@ context.fillText(
 document.addEventListener("keydown", newGame);
 
 // BUILD AN ASTEROID
-function newAsteroid(x, y, r) {
+function newAsteroid(x, y, r, imageName) {
   let lvlMultiply = 1 + 0.1 * level;
   let roid = {
     x: x,
@@ -143,6 +143,7 @@ function newAsteroid(x, y, r) {
     a: Math.random() * Math.PI * 2, // in radians
     vert: Math.floor(Math.random() * (roidsVert + 1) + roidsVert / 2),
     offs: [],
+		imageName: imageName || 'epilot'
   };
 
   // Create the vertex offets array
@@ -176,12 +177,12 @@ function destroyAsteroid(index) {
 
   // Split the asteroid in 2
   if (r === Math.ceil(roidsSize / 2)) {
-    roids.push(newAsteroid(x, y, Math.ceil(roidsSize / 4)));
-    roids.push(newAsteroid(x, y, Math.ceil(roidsSize / 4)));
+    roids.push(newAsteroid(x, y, Math.ceil(roidsSize / 4), 'rolf'));
+    roids.push(newAsteroid(x, y, Math.ceil(roidsSize / 4)), 'rolf');
     score += roidsLargePts;
   } else if (r == Math.ceil(roidsSize / 4)) {
-    roids.push(newAsteroid(x, y, Math.ceil(roidsSize / 8)));
-    roids.push(newAsteroid(x, y, Math.ceil(roidsSize / 8)));
+    roids.push(newAsteroid(x, y, Math.ceil(roidsSize / 8), 'aperol'));
+    roids.push(newAsteroid(x, y, Math.ceil(roidsSize / 8), 'aperol'));
     score += roidsMediumPts;
   } else {
     score += roidsSmallPts;
@@ -201,8 +202,9 @@ function destroyAsteroid(index) {
   roidsLeft--;
   music.setAsteroidRatio(roidsLeft === 0 ? 1 : roidsLeft / roidsTotal);
 
+	console.log('roids', roids.length)
   // Then new level starts
-  if (roids.length === 0) {
+  if (roids.length === 1+level) {
     level++;
     newLevel();
   }
@@ -235,25 +237,33 @@ function newShip() {
   };
 }
 
+function radians_to_degrees(radians) {
+  var pi = Math.PI;
+  return radians * (180 / pi);
+}
+
+var img = new Image();
+img.src = "./small-rocket.svg";
+
 // DRAW A NEW SHIP
-function drawShip(x, y, a, color = "#fff") {
-  context.strokeStyle = color;
-  context.lineWidth = shipSize / 20;
-  context.beginPath();
-  context.moveTo(
-    x + (5 / 3) * ship.r * Math.cos(a),
-    y - (5 / 3) * ship.r * Math.sin(a)
-  );
-  context.lineTo(
-    x - ship.r * ((2 / 3) * Math.cos(a) + Math.sin(a)),
-    y + ship.r * ((2 / 3) * Math.sin(a) - Math.cos(a))
-  );
-  context.lineTo(
-    x - ship.r * ((2 / 3) * Math.cos(a) - Math.sin(a)),
-    y + ship.r * ((2 / 3) * Math.sin(a) + Math.cos(a))
-  );
-  context.closePath();
-  context.stroke();
+function drawShip(x, y, a, color = "#fff", isMain = false) {
+    context.strokeStyle = color;
+    context.lineWidth = shipSize / 20;
+    context.beginPath();
+    context.moveTo(
+      x + (5 / 3) * ship.r * Math.cos(a),
+      y - (5 / 3) * ship.r * Math.sin(a)
+    );
+    context.lineTo(
+      x - ship.r * ((2 / 3) * Math.cos(a) + Math.sin(a)),
+      y + ship.r * ((2 / 3) * Math.sin(a) - Math.cos(a))
+    );
+    context.lineTo(
+      x - ship.r * ((2 / 3) * Math.cos(a) - Math.sin(a)),
+      y + ship.r * ((2 / 3) * Math.sin(a) + Math.cos(a))
+    );
+    context.closePath();
+    context.stroke();
 }
 
 // SHOOT LASERS
@@ -334,8 +344,9 @@ function drawExplosion(ex, ey, spikes, r) {
 
 // MAKE THE GAME WORKS
 function update() {
-  let blinkOn = ship.blinkNumber % 2 === 0;
-  let exploding = ship.explodeTime > 0;
+	if (!ship) return
+  let blinkOn = (ship?.blinkNumber || 0) % 2 === 0;
+  let exploding = ship?.explodeTime > 0;
 
   //MUSIC
   music.tick();
@@ -346,38 +357,45 @@ function update() {
 
   // DRAW THE ASTEROIDS
   let x, y, r, a, vert, offs;
-  for (let i = 0; i < roids.length; i++) {
+  for (let i = 0; i < roids?.length; i++) {
     context.strokeStyle = "rgba(217,241,189,1.00)";
     context.lineWidth = shipSize / 20;
 
-    // Get the asteroid props
+		
+    // // Get the asteroid props
     x = roids[i].x;
     y = roids[i].y;
-    r = roids[i].r;
-    a = roids[i].a;
-    vert = roids[i].vert;
-    offs = roids[i].offs;
+		const asteroidImage = new Image()
+		asteroidImage.src = `./${roids[i].imageName || 'epilot'}.png`
+		context.drawImage(asteroidImage, x - img.width / 2, y - img.height / 2)
+		
+  //   try{
+	// 	r = roids[i].r;
+  //   a = roids[i].a;
+  //   vert = roids[i].vert;
+  //   offs = roids[i].offs;
 
-    // Draw a path
-    context.beginPath();
-    context.moveTo(
-      x + r * offs[0] * Math.cos(a),
-      y + r * offs[0] * Math.sin(a)
-    );
+  //   // Draw a path
+  //   context.beginPath();
+  //   context.moveTo(
+  //     x + r * offs[0] * Math.cos(a),
+  //     y + r * offs[0] * Math.sin(a)
+  //   );
 
-    // Draw the polygon
-    for (let j = 1; j < vert; j++) {
-      context.lineTo(
-        x + r * offs[j] * Math.cos(a + (j * Math.PI * 2) / vert),
-        y + r * offs[j] * Math.sin(a + (j * Math.PI * 2) / vert)
-      );
-    }
-    context.closePath();
-    context.stroke();
+  //   // Draw the polygon
+  //   for (let j = 1; j < vert; j++) {
+  //     context.lineTo(
+  //       x + r * offs[j] * Math.cos(a + (j * Math.PI * 2) / vert),
+  //       y + r * offs[j] * Math.sin(a + (j * Math.PI * 2) / vert)
+  //     );
+  //   }
+  //   context.closePath();
+  //   context.stroke();
+	// } catch(e) {}
   }
 
   // THRUST THE SHIP
-  if (ship.thrusting && !ship.dead) {
+  if (ship?.thrusting && !ship.dead) {
     ship.thrust.x += (shipThrust * Math.cos(ship.a)) / FPS;
     ship.thrust.y -= (shipThrust * Math.sin(ship.a)) / FPS;
     thrustSound.play();
@@ -417,7 +435,7 @@ function update() {
   // DRAW THE SHIP
   if (!exploding) {
     if (blinkOn && !ship.dead) {
-      drawShip(ship.x, ship.y, ship.a);
+      drawShip(ship.x, ship.y, ship.a, "#fff", true);
     }
     // Handle blinking
     if (ship.blinkNumber > 0) {
@@ -435,7 +453,7 @@ function update() {
   }
 
   // DRAW THE LASERS
-  for (let i = 0; i < ship.lasers.length; i++) {
+  for (let i = 0; i < ship?.lasers.length; i++) {
     if (ship.lasers[i].explodeTime == 0) {
       context.fillStyle = "rgba(251,143,129,1.00)";
       context.beginPath();
@@ -498,7 +516,7 @@ function update() {
   context.font = textSize * 0.9 + "px VT323";
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText("BEST SCORE: " + highScore, canvas.width / 2, shipSize);
+  context.fillText("MAX-APEROL-SCORE: " + highScore, canvas.width / 2, shipSize);
 
   //DETECT LASER HITS ON ASTEROID
   let ax, ay, ar, lx, ly;
@@ -561,7 +579,7 @@ function update() {
   }
 
   // HANDLE EDGE OF SCREEN
-  if (ship.x < 0 - ship.r) {
+  if (ship?.x < 0 - ship?.r) {
     ship.x = canvas.width + ship.r;
   } else if (ship.x > canvas.width + ship.r) {
     ship.x = 0 - ship.r;
@@ -673,10 +691,6 @@ function gameOver() {
     highScore = parseInt(scoreStr);
   }
 
-  console.log("Score", score);
-  console.log("Highest score", highScore);
-
-  console.log(`Post message 'game_over'`);
   parent.postMessage(
     {
       type: "game_over",
