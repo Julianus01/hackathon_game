@@ -652,6 +652,22 @@ function gameOver () {
 	text = "Game Over";
 	textAlpha = 1.0;
 	musicOn = false;
+
+	let scoreStr = localStorage.getItem(saveScore);
+	if (scoreStr === null) {
+		highScore = 0;
+	} else {
+		highScore = parseInt(scoreStr);
+	}
+
+	console.log('Score', score)
+	console.log('Highest score', highScore)
+
+	console.log(`Post message 'game_over'`)
+	parent.postMessage("game_over",{
+		currentScore: score,
+		highScore
+	} );
 }
 
 
